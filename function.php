@@ -99,3 +99,314 @@ function SuaThongTinCaNhan($userId, $ten, $ngaysinh, $sdt, $email){
     phone_number = '".$sdt."', email = '".$email."' where username_id = '".$userId."'";
     $query = mysqli_query($conn, $sql);
 }
+////////////////////////////////////////////////////
+
+// Them_de
+function ThemDe($ten, $nam, $so){
+    GLOBAL $conn;
+    $sql = "insert into topic (year, name, deso) values ('".$nam."', '".$ten."', '".$so."')";
+    $query = mysqli_query($conn, $sql);
+
+}
+////////////////////////////////////
+
+// Sua_de
+function getDe($topicId){
+GLOBAL $conn;
+$sql = "select * from topic where id = '".$topicId."'";
+$query = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($query);
+return $row;
+}
+function SuaDe($ten, $nam, $so, $topicId){
+GLOBAL $conn;
+$sql = "update topic set name='".$ten."', year='".$nam."', deso = '".$so."' where id = '".$topicId."'";
+$query = mysqli_query($conn, $sql);
+}
+////////////////////////////////////
+
+
+// Grammar
+function getTopicGramar(){
+    GLOBAL $conn;
+    $sql = "select * from topic_grammar";
+	$query = mysqli_query($conn, $sql);
+    $arr = [];
+        while ($row = mysqli_fetch_assoc($query)){
+            $arr[] = $row;
+        }
+        return $arr;
+}
+
+function getNoiDungChuDe($topicId){
+    GLOBAL $conn;
+    $sql = "select * from noi_dung_chu_de where topic_id = ".$topicId."";
+	$query = mysqli_query($conn, $sql);
+    $arr = [];
+        while ($row = mysqli_fetch_assoc($query)){
+            $arr[] = $row;
+        }
+        return $arr;
+}
+
+function ThemChuDe($ten){
+    GLOBAL $conn;
+    $sql = "insert into topic_grammar (name) value('".$ten."')";
+	$query = mysqli_query($conn, $sql);
+}
+
+function ThemBaiTap($tenbt, $hannop, $tenfile, $filetmp, $topicId){
+    GLOBAL $conn;
+    $extension = array('pdf', 'docx', 'doc');
+    $extension_file = strtolower( pathinfo($tenfile, PATHINFO_EXTENSION));
+    $flag = 0;
+    if(empty($tenbt)){
+        echo "Hãy nhập tên bài tập.";
+        $flag = 1;
+    }
+    if(empty($hannop)){
+        echo "Hãy nhập hạn nộp bài tập.";
+        $flag = 1;
+    }
+    if(empty($tenfile)){
+        echo "Hãy chọn file bài tập.";
+        $flag = 1;
+    }
+    if(!in_array($extension_file, $extension)){
+        echo "Hãy chọn đúng loại file.";
+        $flag = 1;
+    }
+    if($flag == 0){
+        //file
+        $path = '../fileBT/';
+        $filename = $tenfile;
+        $file = pathinfo($filename);
+        if(file_exists($path.$filename)){
+            $newfilename = $file['filename'] . uniqid(rand(), true) . '.'. $extension_file;
+        }
+        else{
+            $newfilename = $filename;
+        }
+        $filePath = $path.$newfilename;
+        move_uploaded_file($filetmp, $filePath);
+        $sql = "insert into noi_dung_chu_de(name, hannop, filename, topic_id) values('$tenbt', '$hannop', '$newfilename', '$topicId')";
+        $do = mysqli_query($conn, $sql);
+        
+    }
+}
+
+function getChuDe( $topicId){
+    GLOBAL $conn;
+    $sql = "select * from topic_grammar where id = '$topicId'";
+    $do = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($do);
+    return $row['name'];
+}
+
+function SuaChuDe($tenchude, $topicId){
+    GLOBAL $conn;
+    if(!empty($tenchude)){
+        $name = $tenchude;
+        $sql = "update topic_grammar set name = '$name' where id = '$topicId'";
+        $do = mysqli_query($conn, $sql);
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+function XoaChuDe($topicId){
+    GLOBAL $conn;
+        $sql = "delete from topic_grammar where id = ".$topicId."";
+        $do = mysqli_query($conn, $sql);
+}
+
+function getChiTietBaiTap($idBaiTap){
+    GLOBAL $conn;
+    $sql = "select * from noi_dung_chu_de where id = '$idBaiTap'";
+    $do = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($do);
+    return $row;
+}
+function GetChiTietBaiNop($idBaiTap, $userId){
+    GLOBAL $conn;
+    $sql = "select * from bainop where id_bai_tap = '$idBaiTap' and user_id = '$userId'";
+    $do = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($do);
+    return $row;
+}
+
+
+function HienThiIframe($filename){
+    $iframe = "<iframe width='100%' height='100%' src='".$filename."'></iframe>";
+    $btn = "<a class='btn btn-primary' href='".$filename."'>Tải xuống file đề bài</a>";
+    if(pathinfo($filename, PATHINFO_EXTENSION) == 'pdf'){
+        echo $iframe;
+    } 
+    else{
+        echo $btn;
+    }
+}
+
+function SuaBaiTap2($tenbt, $hannop, $idBaiTap){
+    GLOBAL $conn;
+    $flag = 0;
+    if(empty($tenbt)){
+        echo "Hãy nhập tên bài tập.";
+        $flag = 1;
+    }
+    if(empty($hannop)){
+        echo "Hãy nhập hạn nộp bài tập.";
+        $flag = 1;
+    }
+
+    if($flag == 0){
+        //file		
+            $sql = "update noi_dung_chu_de set name = '$tenbt', hannop = '$hannop' where id = '$idBaiTap' ";
+            $do = mysqli_query($conn, $sql);
+            return true;
+    
+    }
+}
+function SuaBaiTap1($tenbt,  $hannop, $tenfile, $filetmp, $idBaiTap){
+    GLOBAL $conn;
+    $sql = "select filename from noi_dung_chu_de where id = '$idBaiTap'";
+    $do = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($do);
+    $oldfilename = $row['filename'];
+    
+    $flag = 0;
+    if(empty($tenbt)){
+        echo "Hãy nhập tên bài tập.";
+        $flag = 1;
+    }
+    if(empty($hannop)){
+        echo "Hãy nhập hạn nộp bài tập.";
+        $flag = 1;
+    }
+
+    if($flag == 0){
+        //file		
+        $path = '../fileBT/';
+        $filename = $tenfile;
+        $file = pathinfo($filename);
+        if(empty($tenfile) == false){
+            $extension = array('pdf', 'docx', 'doc');
+            $extension_file = strtolower( pathinfo($tenfile, PATHINFO_EXTENSION));
+            if(in_array($extension_file, $extension)){
+                unlink($path.$oldfilename);
+                if(file_exists($path.$filename)){
+                    $newfilename = $file['filename'] . uniqid(rand(), true) . '.'. $extension_file;
+                }
+                else{
+                    $newfilename = $filename;
+                }
+                $filePath = $path.$newfilename;
+                move_uploaded_file($filetmp, $filePath);				
+                $sql = "update noi_dung_chu_de set name = '$tenbt', hannop = '$hannop', filename = '$newfilename' where id = '$idBaiTap' ";
+                $do = mysqli_query($conn, $sql);
+            }
+            
+            return true;
+        }
+        else{
+            return false;
+        }
+
+    }
+}
+
+function XoaBT($idBaiTap){
+    GLOBAL $conn;
+
+    $sql = "select filename from noi_dung_chu_de where id = '$idBaiTap'";
+    $do = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($do);
+    $path = '../fileBT/';
+    if(!empty($row['filename'])){
+        unlink($path.$row['filename']);
+    }
+
+    $sql = "delete from noi_dung_chu_de where id = '$idBaiTap'";
+    $do = mysqli_query($conn, $sql);
+    if($do == true){
+        return true;
+    }
+    return false;
+}
+
+function getChiTietBaiNop2($idBaiTap){
+    GLOBAL $conn;
+    $arr = [];
+    $sql = "select bainop.id as id, user_information.fullname as name, bainop.pass as pass, bainop.filename as filename, bainop.time as time from bainop, user_information where bainop.id_bai_tap = '$idBaiTap'  and bainop.user_id = user_information.username_id";
+    $do = mysqli_query($conn, $sql);
+    if(mysqli_num_rows($do)>0){
+        while($row = mysqli_fetch_assoc($do)){
+            $arr[] = $row;
+        }
+    }
+    return $arr;
+}
+
+function ChamBaiDat($idBaiNop){
+    GLOBAL $conn;
+    $sql = "update bainop set pass = 1 where id = '$idBaiNop'";
+    $do = mysqli_query($conn, $sql);
+}
+
+function ChamBaiKhongDat($idBaiNop){
+    GLOBAL $conn;
+    $sql = "update bainop set pass = 0 where id = '$idBaiNop'";
+    $do = mysqli_query($conn, $sql);
+}
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////
+    
+// Quản lý tài khoản
+
+function getTaiKhoan(){
+    GLOBAL $conn;
+    $sql = "select accounts.id, accounts.username, user_information.fullname, user_information.birthday, user_information.phone_number, user_information.email from accounts, user_information where accounts.id = user_information.username_id";
+    $query = mysqli_query($conn, $sql);
+    $arr = [];
+    if(mysqli_num_rows($query)>0){
+        while($row = mysqli_fetch_assoc($query)){
+            $arr[] = $row;
+        }
+    }
+    return $arr;
+}
+
+function xoaTK($userId){
+    GLOBAL $conn;
+    //Xóa thông tin từ bảng user_information
+    $sql = "delete from user_information where username_id=".$userId."";
+    $query = $do = mysqli_query($conn, $sql);
+    //Xóa thông tin từ bảng accounts
+    $sql = "delete from accounts where id=".$userId."";
+    $query = mysqli_query($conn, $sql);
+
+    //Xóa thông tin từ bảng exams
+    $sql = "select exam_id from exams where user_id=".$userId."";
+    $query = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($query);
+    if(mysqli_num_rows($query)>0){
+        $examId = $row['exam_id'];
+        $sql = "delete from exams where exam_id=".$examId."";
+        $query = mysqli_query($conn, $sql);
+        $sql = "delete from quiz_answer where exam_id=".$examId."";
+        $query = mysqli_query($conn, $sql);
+    }
+
+
+    //Refesh page
+    header("Refresh:0");
+}
+////////////////////////////////////////////////////////////////
