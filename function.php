@@ -125,7 +125,31 @@ $query = mysqli_query($conn, $sql);
 }
 ////////////////////////////////////
 
-
+    //Test_select page
+    function getTopic(){
+        GLOBAL $conn;
+        $sql = "select * from topic";
+        $query = mysqli_query($conn, $sql);
+        $arr = [];
+        while ($row = mysqli_fetch_assoc($query)){
+            $arr[] = $row;
+        }
+        return $arr;
+    }
+    function getScoreFromExams ($topicId, $userId){
+        GLOBAL $conn;
+        $sql = "select score from exams where topic_id = '$topicId' and user_id = '$userId'";
+        $query = mysqli_query($conn, $sql);
+        $arr = [];
+        $row = mysqli_fetch_assoc($query);
+        //Nếu không có bảng nào trả ra thì return 0
+        if($row == null|| $row == NULL){
+            return "0";
+        }
+        else{
+            return $row['score'];
+        }
+    }
 // Grammar
 function getTopicGramar(){
     GLOBAL $conn;
@@ -410,3 +434,77 @@ function xoaTK($userId){
     header("Refresh:0");
 }
 ////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////
+function GetMatKhauCu($oldPassword, $userId){
+    GLOBAL $conn;
+    $sql = "select password from accounts where id = ".$userId."";
+    $query = mysqli_query($conn, $sql);
+    if(mysqli_num_rows($query) > 0){
+        $row = mysqli_fetch_assoc($query);
+        if($oldPassword == $row['password']){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+}
+
+function updateMatKhau($newPassword, $userId){
+    GLOBAL $conn;
+    $sql = "update accounts set password = '".$newPassword."' where id = ".$userId."";
+    $query = mysqli_query($conn, $sql);
+}
+
+
+/////////////////////////////
+
+//dashboard page
+function checkLogin(){
+    if(!isset($_SESSION['userId'])){
+        header("location: login.php");
+        return false;
+    }
+    return true;
+}
+
+function getUserInformation(){
+    GLOBAL $conn;
+    $sql = "select * from user_information where username_id = '".$_SESSION['userId']."'";
+    $query = mysqli_query($conn, $sql);
+    $row = mysqli_fetch_assoc($query);
+    return $row;
+}
+
+
+function getBaiLam($topicId){
+    GLOBAL $conn;
+    $sql = "select * from exams where topic_id = ".$topicId."" ;
+    $query = mysqli_query($conn, $sql);
+    $arr = [];
+    while($row = mysqli_fetch_assoc($query)){
+        $arr[] = $row;
+    }
+    return $arr;
+}
+function xoaBaiLam($examId){
+    GLOBAL $conn;
+    $sql = "delete from exams where exam_id = ".$examId."" ;
+    $query = mysqli_query($conn, $sql);
+    header("Refresh:0");
+}
+
+
+
+function getAllScore($topicId){
+    GLOBAL $conn;
+    $sql = "select score from exams where topic_id = ".$topicId."" ;
+    $query = mysqli_query($conn, $sql);
+    $arr = [];
+    while($row = mysqli_fetch_assoc($query)){
+        $arr[] = $row;
+    }
+    return $arr;
+}
